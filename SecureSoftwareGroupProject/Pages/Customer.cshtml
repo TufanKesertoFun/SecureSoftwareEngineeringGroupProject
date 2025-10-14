@@ -1,0 +1,11 @@
+﻿@page
+@model SecureSoftwareGroupProject.Pages.CustomerModel
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@{
+    ViewData["Title"] = "Customer";
+}
+<h1 class="mb-3">Customer</h1>
+
+<p>Customer intro / details page.</p>
+
+<a class="btn btn-primary mt-3" asp-page="/CustomerBalance">Next: Customer Balances</a>

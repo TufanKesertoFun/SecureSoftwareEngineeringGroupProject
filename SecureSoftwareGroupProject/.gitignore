@@ -1,0 +1,50 @@
+﻿# Visual Studio user-specific files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+# ASP.NET / Razor
+wwwroot/lib/
+**/wwwroot/dist/
+*.pubxml
+*.pubxml.user
+appsettings.*.local.json
+
+# Packages
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+# Tooling
+.vscode/
+*.dbmdl
+*.bak
+*.backup
+*.mdf
+*.ldf
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.log
+
+# Rider / JetBrains
+.idea/
+*.iml
+
+# Misc
+_Dependencies/
