@@ -4,14 +4,24 @@ using SecureSoftwareGroupProject.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Razor Pages
+// (Optional: make sure JSONs are loaded explicitly if hosting on IIS)
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+
+// 🔎 Read once, guard if missing/empty, and use the variable everywhere
+var conn = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(conn))
+{
+    throw new InvalidOperationException(
+        $"Connection string 'DefaultConnection' is missing/empty. ENV={builder.Environment.EnvironmentName}");
+}
+
 builder.Services.AddRazorPages();
 
-// EF Core (uses DefaultConnection from appsettings.json)
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(conn));
 
-// Cookies
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(o =>
     {
@@ -24,16 +34,10 @@ var app = builder.Build();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
-app.UseRouting();                 // <— routing FIRST
-app.UseAuthentication();          // then auth
+app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/", ctx =>            // root → /Login
-{
-    ctx.Response.Redirect("/Login");
-    return Task.CompletedTask;
-});
-
+app.MapGet("/", ctx => { ctx.Response.Redirect("/Login"); return Task.CompletedTask; });
 app.MapRazorPages();
 app.Run();
