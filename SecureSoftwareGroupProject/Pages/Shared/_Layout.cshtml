@@ -1,4 +1,5 @@
 ﻿@* Pages/Shared/_Layout.cshtml *@
+@using System.Security.Claims
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,51 +10,116 @@
     <!-- Bootstrap 5 (CDN) -->
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" />
 
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <nav class="navbar navbar-expand-lg apple-navbar fixed-top">
             <div class="container">
 
-                <!-- App title (NOT a link) -->
-                <span class="navbar-brand mb-0 h1">SecureSoftwareGroupProject</span>
+                <a class="navbar-brand d-flex align-items-center gap-2" asp-page="/Index">
+                    <span class="material-icons-outlined brand-icon">verified_user</span>
+                    <span class="fw-semibold">SecureService</span>
+                </a>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                <button class="navbar-toggler apple-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
                         aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+                    <span class="material-icons-outlined">menu</span>
                 </button>
 
                 <div id="mainNav" class="collapse navbar-collapse">
-                    <!-- Left: nav links -->
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <ul class="navbar-nav mx-auto mb-2 mb-lg-0 apple-nav-links">
                         <li class="nav-item">
-                            <a class="nav-link" asp-page="/Customer">Customer</a>
+                            <a class="nav-link" asp-page="/Index">
+                                Home
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-page="/CustomerBalance">Balances</a>
+                            <a class="nav-link" asp-page="/Customer">
+                                Customer
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-page="/Privacy">Privacy</a>
+                            <a class="nav-link" asp-page="/CustomerBalance">
+                                Balances
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-page="/ProviderProfiles">ProviderProfiles</a>
+                            <a class="nav-link" asp-page="/CustomerReviews">
+                                Reviews
+                            </a>
                         </li>
-
-                        
+                        <li class="nav-item">
+                            <a class="nav-link" asp-page="/ProviderProfiles">
+                                Providers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-page="/Privacy">
+                                Privacy
+                            </a>
+                        </li>
                     </ul>
 
-                    <!-- Right: Logout button -->
-                    <form method="post" asp-page="/Logout" class="d-flex">
-                        <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
-                    </form>
+                    @{
+                        var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+                        var userName = User.Identity?.Name ?? "Account";
+                        var roleClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value ?? "User";
+                    }
+
+                    @if (isAuthenticated)
+                    {
+                        <div class="dropdown">
+                            <button class="btn apple-profile-btn d-flex align-items-center gap-2 mt-3 mt-lg-0"
+                                    id="profileDropdown"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                                <span class="material-icons-outlined">account_circle</span>
+                                <span class="d-none d-lg-inline">@userName</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end apple-profile-menu shadow-sm" aria-labelledby="profileDropdown">
+                                <li class="dropdown-item-text text-muted small">
+                                    Signed in as <strong>@userName</strong>
+                                </li>
+                                <li class="dropdown-item-text text-muted small">
+                                    Role: <strong>@roleClaim</strong>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-page="/Privacy">
+                                        <span class="material-icons-outlined">settings</span>
+                                        <span>Settings</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <form method="post" asp-page="/Logout" class="m-0 p-0">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="dropdown-item d-flex align-items-center gap-2">
+                                            <span class="material-icons-outlined">logout</span>
+                                            <span>Sign out</span>
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <a class="btn apple-profile-btn mt-3 mt-lg-0 d-flex align-items-center gap-2" asp-page="/Login">
+                            <span class="material-icons-outlined">account_circle</span>
+                            <span class="d-none d-lg-inline">Sign in</span>
+                        </a>
+                    }
                 </div>
             </div>
         </nav>
     </header>
 
-    <div class="container mt-4">
+    <div class="container main-container">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>

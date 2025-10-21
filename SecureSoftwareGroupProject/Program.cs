@@ -38,6 +38,5 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/", ctx => { ctx.Response.Redirect("/Login"); return Task.CompletedTask; });
 app.MapRazorPages();
 app.Run();

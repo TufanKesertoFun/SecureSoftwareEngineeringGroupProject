@@ -11,6 +11,7 @@ namespace SecureSoftwareGroupProject.Data
         public DbSet<CustomerBalance> CustomerBalances => Set<CustomerBalance>();
         public DbSet<ProviderProfile> ProviderProfiles => Set<ProviderProfile>();
         public DbSet<User> Users => Set<User>();
+        public DbSet<CustomerReview> CustomerReviews => Set<CustomerReview>();
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
@@ -23,6 +24,7 @@ namespace SecureSoftwareGroupProject.Data
             mb.Entity<CustomerBalance>().ToTable("CustomerBalance", "dbo");
             mb.Entity<ProviderProfile>().ToTable("ProviderProfile", "dbo");
             mb.Entity<User>().ToTable("Users", "dbo");
+            mb.Entity<CustomerReview>().ToTable("CustomerReview", "dbo");
 
             // Decimal precision for currency-like fields (no entity changes)
             mb.Entity<CustomerBalance>().Property(p => p.Balance).HasColumnType("decimal(18,2)");

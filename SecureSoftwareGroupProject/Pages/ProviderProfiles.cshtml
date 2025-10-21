@@ -204,7 +204,30 @@
                     topEnd: 'search',
                     bottomStart: 'info',
                     bottomEnd: 'paging',
-                    top: { buttons: ['copy', 'csv', 'excel', 'print'] }
+                    top: {
+                        buttons: [
+                            {
+                                extend: 'copy',
+                                text: '<span class="material-icons-outlined align-middle me-1">content_copy</span><span>Copy</span>',
+                                className: 'btn btn-light btn-sm dt-action-btn'
+                            },
+                            {
+                                extend: 'csv',
+                                text: '<span class="material-icons-outlined align-middle me-1">grid_on</span><span>CSV</span>',
+                                className: 'btn btn-light btn-sm dt-action-btn'
+                            },
+                            {
+                                extend: 'excel',
+                                text: '<span class="material-icons-outlined align-middle me-1">table_view</span><span>Excel</span>',
+                                className: 'btn btn-light btn-sm dt-action-btn'
+                            },
+                            {
+                                extend: 'print',
+                                text: '<span class="material-icons-outlined align-middle me-1">print</span><span>Print</span>',
+                                className: 'btn btn-light btn-sm dt-action-btn'
+                            }
+                        ]
+                    }
                 },
                 columnDefs: [
                     { targets: 0, orderable: false },

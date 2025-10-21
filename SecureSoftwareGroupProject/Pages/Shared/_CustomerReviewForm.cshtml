@@ -1,0 +1,73 @@
+﻿@model SecureSoftwareGroupProject.Pages.CustomerReviewForm
+@using System
+@using System.Linq
+@{
+    var activeCustomers = ViewData["ActiveCustomers"] as IEnumerable<string> ?? Array.Empty<string>();
+    var contextId = ViewData["FormContext"] as string ?? "form";
+    var ratingValue = Model?.Rating is >= 1 and <= 5 ? Model.Rating : 5;
+    var existingImage = Model?.ExistingImagePath;
+    var showExisting = !string.IsNullOrWhiteSpace(existingImage);
+}
+
+<input type="hidden" name="Form.Id" value="@(Model?.Id?.ToString() ?? string.Empty)" />
+<input type="hidden" name="Form.ExistingImagePath" value="@existingImage" data-existing-image-path />
+
+<div class="row g-3">
+    <div class="col-12">
+        <label class="form-label">Customer</label>
+        <select name="Form.CustomerName" class="form-select" required>
+            <option value="">Select an active customer</option>
+            @foreach (var name in activeCustomers.OrderBy(n => n))
+            {
+                var isSelected = string.Equals(Model?.CustomerName, name, StringComparison.OrdinalIgnoreCase);
+                <option value="@name" selected="@(isSelected ? "selected" : null)">@name</option>
+            }
+        </select>
+        <div class="invalid-feedback">Pick an active customer from the list.</div>
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label">Rating (1-5)</label>
+        <input name="Form.Rating"
+               type="number"
+               min="1"
+               max="5"
+               class="form-control"
+               value="@(ratingValue)"
+               required />
+        <div class="invalid-feedback">Rating must be between 1 and 5 stars.</div>
+    </div>
+
+    <div class="col-12">
+        <label class="form-label">Review</label>
+        <textarea name="Form.ReviewText"
+                  class="form-control"
+                  rows="4"
+                  maxlength="2000"
+                  required>@Model?.ReviewText</textarea>
+        <div class="invalid-feedback">Please share a short review.</div>
+    </div>
+
+    @{
+        var checkboxId = $"removeImage_{contextId}";
+    }
+    <div class="col-12 existing-image-block" style="display:@(showExisting ? "block" : "none")">
+        <label class="form-label d-block">Current image</label>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <img src="@(existingImage ?? string.Empty)" alt="Current review" class="img-thumbnail review-thumb" data-existing-image />
+            <div class="form-check mb-0">
+                <input class="form-check-input" type="checkbox" id="@checkboxId" name="Form.RemoveImage" value="true" data-remove-image />
+                <label class="form-check-label" for="@checkboxId">Remove image</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <label class="form-label">Upload image (optional)</label>
+        <input name="Form.ImageUpload"
+               class="form-control"
+               type="file"
+               accept=".jpg,.jpeg,.png,.gif,.webp" />
+        <div class="form-text">Supported: JPG, PNG, GIF, WEBP. Max size 2 MB.</div>
+    </div>
+</div>
