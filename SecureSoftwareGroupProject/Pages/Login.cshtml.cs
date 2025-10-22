@@ -5,34 +5,39 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using SecureSoftwareGroupProject.Data;
 using System.Security.Claims;
-
-public class LoginModel : PageModel
+namespace SecureSoftwareGroupProject.Pages
 {
-    private readonly AppDbContext _db;
-    public LoginModel(AppDbContext db) => _db = db;
-
-    [BindProperty] public string Username { get; set; } = "";
-    [BindProperty] public string Password { get; set; } = "";
-    public string? ErrorMessage { get; set; }
-
-    public void OnGet() { }
-
-    public async Task<IActionResult> OnPostAsync()
+    public class LoginModel : PageModel
     {
-        var user = await _db.Users
-            .FirstOrDefaultAsync(u => u.Username == Username && u.Password == Password);
+        private readonly AppDbContext _db;
+        public LoginModel(AppDbContext db) => _db = db;
 
-        if (user is null)
+        [BindProperty] public required string Username { get; set; } = "";
+        [BindProperty] public required string Password { get; set; } = "";
+        public string? ErrorMessage { get; set; }
+
+        public void OnGet()
         {
-            ErrorMessage = "Invalid username or password.";
-            return Page();
+            throw new NotSupportedException("GET requests are not supported on this page.");
         }
 
-        var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Username) };
-        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        var principal = new ClaimsPrincipal(identity);
-        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+        public async Task<IActionResult> OnPostAsync()
+        {
+            var user = await _db.Users
+                .FirstOrDefaultAsync(u => u.Username == Username && u.Password == Password);
 
-        return RedirectToPage("/Customer"); // first step after login
+            if (user is null)
+            {
+                ErrorMessage = "Invalid username or password.";
+                return Page();
+            }
+
+            var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Username) };
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+            return RedirectToPage("/Customer"); // first step after login
+        }
     }
 }

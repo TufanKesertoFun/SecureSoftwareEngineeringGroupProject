@@ -1,8 +1,12 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-public class IndexModel : PageModel
+namespace SecureSoftwareGroupProject.Pages
 {
-    public void OnGet()
+    public class IndexModel : PageModel
     {
+        public void OnGet()
+        {
+            throw new NotSupportedException("GET requests are not supported on this page.");
+        }
     }
 }
