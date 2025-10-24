@@ -12,7 +12,7 @@ namespace SecureSoftwareGroupProject.Model
         public Guid UserId { get; set; }
 
         [Required, StringLength(120)]
-        public string ProfessionalTitle { get; set; }
+        public string? ProfessionalTitle { get; set; }
 
         [StringLength(160)]
         public string? BusinessName { get; set; }

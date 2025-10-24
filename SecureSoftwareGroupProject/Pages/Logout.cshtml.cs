@@ -3,11 +3,14 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
-public class LogoutModel : PageModel
+namespace SecureSoftwareGroupProject.Pages
 {
-    public async Task<IActionResult> OnPostAsync()
+    public class LogoutModel : PageModel
     {
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        return RedirectToPage("/Login");
+        public async Task<IActionResult> OnPostAsync()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToPage("/Login");
+        }
     }
 }

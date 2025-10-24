@@ -13,24 +13,24 @@ namespace SecureSoftwareGroupProject.Data
         public DbSet<User> Users => Set<User>();
         public DbSet<CustomerReview> CustomerReviews => Set<CustomerReview>();
 
-        protected override void OnModelCreating(ModelBuilder mb)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(mb);
+            base.OnModelCreating(modelBuilder);
 
             // Default schema
-            mb.HasDefaultSchema("dbo");
+            modelBuilder.HasDefaultSchema("dbo");
 
             // Table mappings (respecting your class names, just pinning to dbo)
-            mb.Entity<CustomerBalance>().ToTable("CustomerBalance", "dbo");
-            mb.Entity<ProviderProfile>().ToTable("ProviderProfile", "dbo");
-            mb.Entity<User>().ToTable("Users", "dbo");
-            mb.Entity<CustomerReview>().ToTable("CustomerReview", "dbo");
+            modelBuilder.Entity<CustomerBalance>().ToTable("CustomerBalance", "dbo");
+            modelBuilder.Entity<ProviderProfile>().ToTable("ProviderProfile", "dbo");
+            modelBuilder.Entity<User>().ToTable("Users", "dbo");
+            modelBuilder.Entity<CustomerReview>().ToTable("CustomerReview", "dbo");
 
             // Decimal precision for currency-like fields (no entity changes)
-            mb.Entity<CustomerBalance>().Property(p => p.Balance).HasColumnType("decimal(18,2)");
-            mb.Entity<CustomerBalance>().Property(p => p.CreditLimit).HasColumnType("decimal(18,2)");
-            mb.Entity<ProviderProfile>().Property(p => p.HourlyRateAmount).HasColumnType("decimal(18,2)");
-            mb.Entity<ProviderProfile>().Property(p => p.CalloutFeeAmount).HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<CustomerBalance>().Property(p => p.Balance).HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<CustomerBalance>().Property(p => p.CreditLimit).HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<ProviderProfile>().Property(p => p.HourlyRateAmount).HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<ProviderProfile>().Property(p => p.CalloutFeeAmount).HasColumnType("decimal(18,2)");
 
             // No relationships or extra indexes configured since you didn't define nav props
         }
