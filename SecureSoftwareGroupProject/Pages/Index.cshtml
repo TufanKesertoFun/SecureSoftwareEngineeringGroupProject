@@ -1,5 +1,7 @@
 ﻿@page
 @model IndexModel
+@using System.Globalization
+@using System.Linq
 @{
     ViewData["Title"] = "Home";
 }
@@ -21,8 +23,128 @@
 </section>
 
 <section class="container mb-5">
-    <h2 class="h4 fw-semibold mb-3">Get started</h2>
-    <p class="text-muted">
-        Explore customer details, manage balances, and collaborate with providers using the navigation above.
-    </p>
+    <div class="d-flex flex-column flex-lg-row justify-content-lg-between align-items-lg-end gap-3 mb-4">
+        <div>
+            <h2 class="h4 fw-semibold mb-1">Most Popular Service Providers</h2>
+            <p class="text-muted mb-0">Hand-picked professionals based on rating, reviews, and completed jobs.</p>
+        </div>
+        <a class="btn btn-outline-dark" asp-page="/ProviderProfiles">Browse All Providers</a>
+    </div>
+
+    @if (!Model.TopProviders.Any())
+    {
+        <div class="alert alert-info shadow-sm">
+            We have not recorded any providers yet. Check back once service providers start registering.
+        </div>
+    }
+    else
+    {
+        <div class="provider-list">
+            @for (var index = 0; index < Model.TopProviders.Count; index++)
+            {
+                var provider = Model.TopProviders[index];
+                var categories = provider.ServiceCategories?
+                    .Split(',', System.StringSplitOptions.RemoveEmptyEntries | System.StringSplitOptions.TrimEntries)
+                    .Take(2)
+                    .ToArray() ?? System.Array.Empty<string>();
+
+                var primaryCategory = categories.FirstOrDefault() ?? provider.Title;
+                var icon = "handyman";
+                var lowerCategory = primaryCategory?.ToLowerInvariant() ?? string.Empty;
+
+                if (lowerCategory.Contains("electric"))
+                {
+                    icon = "bolt";
+                }
+                else if (lowerCategory.Contains("plumb"))
+                {
+                    icon = "plumbing";
+                }
+                else if (lowerCategory.Contains("security") || lowerCategory.Contains("lock"))
+                {
+                    icon = "shield";
+                }
+                else if (lowerCategory.Contains("hvac") || lowerCategory.Contains("climate") || lowerCategory.Contains("cool"))
+                {
+                    icon = "ac_unit";
+                }
+
+                var review = index < Model.TopReviews.Count ? Model.TopReviews[index] : null;
+
+                <article class="provider-list__item">
+                    <div class="provider-card h-100">
+                        <div class="provider-card__header">
+                            <span class="material-icons-outlined provider-card__icon">@icon</span>
+                            <div class="provider-card__header-main">
+                                <div class="provider-card__badge-row">
+                                    <span class="provider-card__badge">@provider.Title</span>
+                                    @if (provider.EmergencyAvailable == true)
+                                    {
+                                        <span class="provider-card__tag">Available 24/7</span>
+                                    }
+                                </div>
+                                <h3 class="provider-card__title">@(string.IsNullOrWhiteSpace(provider.BusinessName) ? provider.Title : provider.BusinessName)</h3>
+                            </div>
+                        </div>
+
+                        <div class="provider-card__rating">
+                            @if (provider.RatingAverage is not null && provider.RatingCount is not null)
+                            {
+                                <span class="provider-card__rating-value">
+                                    <span class="material-icons-outlined">star</span>
+                                    @provider.RatingAverage.Value.ToString("0.0")
+                                </span>
+                                <span class="provider-card__rating-count">
+                                    @provider.RatingCount.Value.ToString("N0", CultureInfo.CurrentCulture) reviews
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="provider-card__rating-none">
+                                    <span class="material-icons-outlined">star_border</span>
+                                    No reviews yet
+                                </span>
+                            }
+                        </div>
+
+                        <ul class="provider-card__metrics">
+                            <li>
+                                <span class="label">Hourly</span>
+                                <span class="value">@(provider.HourlyRate?.ToString("C", CultureInfo.CurrentCulture) ?? "—")</span>
+                            </li>
+                            <li>
+                                <span class="label">Call-out</span>
+                                <span class="value">@(provider.CalloutFee?.ToString("C", CultureInfo.CurrentCulture) ?? "—")</span>
+                            </li>
+                            <li>
+                                <span class="label">Specialties</span>
+                                <span class="value">@(categories.Length > 0 ? string.Join(" · ", categories) : "—")</span>
+                            </li>
+                        </ul>
+
+                        @if (review is not null)
+                        {
+                            <div class="provider-card__review">
+                                <span class="material-icons-outlined provider-card__review-icon" aria-hidden="true">format_quote</span>
+                                <div class="provider-card__review-content">
+                                    <p class="provider-card__review-text">@review.ReviewText</p>
+                                    <div class="provider-card__review-meta text-muted">
+                                        <span class="provider-card__review-customer">@review.CustomerName</span>
+                                        <span aria-hidden="true" class="mx-1">•</span>
+                                        <time datetime="@review.CreatedAtUtc.ToString("O")">@review.CreatedAtUtc.ToLocalTime().ToString("d MMM yyyy")</time>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="provider-card__actions">
+                            <a class="btn btn-dark flex-grow-1" asp-page="/ProviderProfiles">View profile</a>
+                            <a class="btn btn-outline-dark" asp-page="/CustomerReviews">Reviews</a>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+
 </section>
