@@ -8,8 +8,5 @@ public class CustomerModel : PageModel
 {
     private readonly ILogger<CustomerModel> _logger;
     public CustomerModel(ILogger<CustomerModel> logger) => _logger = logger;
-    public void OnGet()
-    {
-        throw new NotSupportedException("GET requests are not supported on the Customer page.");
-    }
+    public void OnGet() => _logger.LogDebug("Customer page accessed.");
 }

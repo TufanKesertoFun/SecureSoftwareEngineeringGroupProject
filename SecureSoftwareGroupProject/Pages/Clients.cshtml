@@ -1,0 +1,156 @@
+@page
+@model SecureSoftwareGroupProject.Pages.ClientsModel
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using System.Globalization
+@using System.Linq
+@{
+    ViewData["Title"] = "Clients";
+    var totalBalance = Model.Clients.Sum(c => c.Balance);
+    var activeCount = Model.Clients.Count(c => string.Equals(c.Status, "Active", StringComparison.OrdinalIgnoreCase));
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="mb-1">Client Directory</h1>
+        <p class="text-muted mb-0">People registered to receive services.</p>
+    </div>
+    <div class="text-end">
+        <div class="fs-4 fw-semibold">@Model.Clients.Count</div>
+        <div class="text-muted small">clients in this view</div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="status" class="form-label">Status</label>
+                <select id="status" name="Status" class="form-select">
+                    @foreach (var option in Model.StatusOptions)
+                    {
+                        var isSelected = string.Equals(Model.Status, option.Value, StringComparison.OrdinalIgnoreCase);
+                        if (isSelected)
+                        {
+                            <option value="@option.Value" selected>@option.Label</option>
+                        }
+                        else
+                        {
+                            <option value="@option.Value">@option.Label</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label for="search" class="form-label">Search</label>
+                <input id="search"
+                       name="Search"
+                       value="@Model.Search"
+                       class="form-control"
+                       placeholder="Search by name, email, city, or phone" />
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-fill">Apply</button>
+                <a class="btn btn-outline-secondary flex-fill" asp-page="./Clients">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Active clients in view</div>
+                <div class="fs-3 fw-semibold">@activeCount</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Total outstanding balance</div>
+                <div class="fs-3 fw-semibold">@totalBalance.ToString("C", CultureInfo.CurrentCulture)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Most recent registration</div>
+                <div class="fs-3 fw-semibold">
+                    @{
+                        var latest = Model.Clients.OrderByDescending(c => c.RegistrationDate).FirstOrDefault();
+                        @:(latest?.RegistrationDate.ToLocalTime().ToString("d MMM yyyy") ?? "N/A")
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Clients.Any())
+{
+    <div class="alert alert-info shadow-sm">
+        No clients match the selected filters.
+    </div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">Client</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Location</th>
+                        <th scope="col">Balance</th>
+                        <th scope="col">Credit Limit</th>
+                        <th scope="col">Last Payment</th>
+                        <th scope="col">Registered</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var client in Model.Clients)
+                {
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">@client.Name</div>
+                            @if (!string.IsNullOrWhiteSpace(client.Email) || !string.IsNullOrWhiteSpace(client.Phone))
+                            {
+                                <div class="text-muted small">
+                                    @client.Email
+                                    @if (!string.IsNullOrWhiteSpace(client.Email) && !string.IsNullOrWhiteSpace(client.Phone))
+                                    {
+                                        <span class="mx-1">&middot;</span>
+                                    }
+                                    @client.Phone
+                                </div>
+                            }
+                        </td>
+                        <td>
+                            <span class="badge bg-@(string.Equals(client.Status, "Active", StringComparison.OrdinalIgnoreCase) ? "success" : "secondary")">
+                                @client.Status
+                            </span>
+                        </td>
+                        <td>
+                            @{
+                                var location = string.Join(", ", new[]
+                                {
+                                    client.City,
+                                    client.State
+                                }.Where(part => !string.IsNullOrWhiteSpace(part)));
+                            }
+                            <div>@(string.IsNullOrWhiteSpace(location) ? "—" : location)</div>
+                        </td>
+                        <td>@client.Balance.ToString("C", CultureInfo.CurrentCulture)</td>
+                        <td>@client.CreditLimit.ToString("C", CultureInfo.CurrentCulture)</td>
+                        <td>@client.LastPaymentDate.ToLocalTime().ToString("d MMM yyyy")</td>
+                        <td>@client.RegistrationDate.ToLocalTime().ToString("d MMM yyyy")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

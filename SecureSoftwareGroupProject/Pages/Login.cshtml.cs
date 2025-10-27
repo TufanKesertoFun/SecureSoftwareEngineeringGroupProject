@@ -18,7 +18,7 @@ namespace SecureSoftwareGroupProject.Pages
 
         public void OnGet()
         {
-            throw new NotSupportedException("GET requests are not supported on this page.");
+            // throw new NotSupportedException("GET requests are not supported on this page.");
         }
 
         public async Task<IActionResult> OnPostAsync()

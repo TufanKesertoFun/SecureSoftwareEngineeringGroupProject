@@ -17,22 +17,15 @@ namespace SecureSoftwareGroupProject.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Default schema
-            modelBuilder.HasDefaultSchema("dbo");
+            modelBuilder.Entity<CustomerBalance>().ToTable("CustomerBalance");
+            modelBuilder.Entity<ProviderProfile>().ToTable("ProviderProfile");
+            modelBuilder.Entity<User>().ToTable("Users");
+            modelBuilder.Entity<CustomerReview>().ToTable("CustomerReview");
 
-            // Table mappings (respecting your class names, just pinning to dbo)
-            modelBuilder.Entity<CustomerBalance>().ToTable("CustomerBalance", "dbo");
-            modelBuilder.Entity<ProviderProfile>().ToTable("ProviderProfile", "dbo");
-            modelBuilder.Entity<User>().ToTable("Users", "dbo");
-            modelBuilder.Entity<CustomerReview>().ToTable("CustomerReview", "dbo");
-
-            // Decimal precision for currency-like fields (no entity changes)
-            modelBuilder.Entity<CustomerBalance>().Property(p => p.Balance).HasColumnType("decimal(18,2)");
-            modelBuilder.Entity<CustomerBalance>().Property(p => p.CreditLimit).HasColumnType("decimal(18,2)");
-            modelBuilder.Entity<ProviderProfile>().Property(p => p.HourlyRateAmount).HasColumnType("decimal(18,2)");
-            modelBuilder.Entity<ProviderProfile>().Property(p => p.CalloutFeeAmount).HasColumnType("decimal(18,2)");
-
-            // No relationships or extra indexes configured since you didn't define nav props
+            modelBuilder.Entity<CustomerBalance>().Property(p => p.Balance).HasPrecision(18, 2);
+            modelBuilder.Entity<CustomerBalance>().Property(p => p.CreditLimit).HasPrecision(18, 2);
+            modelBuilder.Entity<ProviderProfile>().Property(p => p.HourlyRateAmount).HasPrecision(18, 2);
+            modelBuilder.Entity<ProviderProfile>().Property(p => p.CalloutFeeAmount).HasPrecision(18, 2);
         }
     }
 }
