@@ -20,7 +20,10 @@ namespace SecureSoftwareGroupProject.Pages
         [BindProperty, Required, DataType(DataType.Password)] public string Password { get; set; } = "";
         public string? ErrorMessage { get; set; }
 
-        public void OnGet() { }
+        public void OnGet()
+        {
+            //This has purposfully been left black to allow for any future changes
+        }
 
         public async Task<IActionResult> OnPostAsync()
         {

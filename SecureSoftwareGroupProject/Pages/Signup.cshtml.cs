@@ -30,7 +30,9 @@ namespace SecureSoftwareGroupProject.Pages
         [Compare(nameof(Password), ErrorMessage = "Passwords do not match.")]
         public string ConfirmPassword { get; set; } = string.Empty;
 
-        public void OnGet() { }
+        public void OnGet() {
+            //This has purposfully been left black to allow for any future changes
+        }
 
         public async Task<IActionResult> OnPostAsync()
         {
