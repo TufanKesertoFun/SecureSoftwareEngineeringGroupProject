@@ -19,13 +19,22 @@ namespace SecureSoftwareGroupProject.Data
 
             modelBuilder.Entity<CustomerBalance>().ToTable("CustomerBalance");
             modelBuilder.Entity<ProviderProfile>().ToTable("ProviderProfile");
-            modelBuilder.Entity<User>().ToTable("Users");
+            modelBuilder.Entity<User>(b =>
+            {
+                b.ToTable("Users");
+                b.HasIndex(u => u.Username).IsUnique(); // unique usernames
+                b.Property(u => u.Username).HasMaxLength(64).IsRequired();
+                b.Property(u => u.Password).HasMaxLength(255).IsRequired();
+                b.Property(u => u.PasswordHash).HasMaxLength(255);
+            });
             modelBuilder.Entity<CustomerReview>().ToTable("CustomerReview");
 
             modelBuilder.Entity<CustomerBalance>().Property(p => p.Balance).HasPrecision(18, 2);
             modelBuilder.Entity<CustomerBalance>().Property(p => p.CreditLimit).HasPrecision(18, 2);
             modelBuilder.Entity<ProviderProfile>().Property(p => p.HourlyRateAmount).HasPrecision(18, 2);
             modelBuilder.Entity<ProviderProfile>().Property(p => p.CalloutFeeAmount).HasPrecision(18, 2);
+
+            
         }
     }
 }

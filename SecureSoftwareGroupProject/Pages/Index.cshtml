@@ -15,12 +15,33 @@
         <p class="hero-subtitle">
             Hire licensed specialists or offer your own services with confidence. Everything lives in one privacy-first workspace.
         </p>
-        <div class="hero-actions d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
-            <a class="btn btn-dark hero-primary" asp-page="/Login">Hire a Professional</a>
-            <a class="btn btn-outline-dark hero-secondary" asp-page="/ProviderProfiles">Offer a Service</a>
-        </div>
+
+     
     </div>
 </section>
+
+<!-- NEW: SIGN-UP CTA (only when logged out) -->
+@if (!(User?.Identity?.IsAuthenticated ?? false))
+{
+    <section class="container mb-5" id="signup-cta">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body d-flex flex-column flex-md-row gap-3 align-items-stretch align-items-md-center">
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">Create your account</h5>
+                            <p class="text-muted mb-0">Book trusted providers and track your jobs in one place.</p>
+                        </div>
+                        <div class="d-flex gap-2 ms-md-auto">
+                            <a class="btn btn-dark" asp-page="/Signup">Sign up</a>
+                            <a class="btn btn-outline-dark" asp-page="/Login">Sign in</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+}
 
 <section class="container mb-5">
     <div class="d-flex flex-column flex-lg-row justify-content-lg-between align-items-lg-end gap-3 mb-4">
@@ -44,9 +65,9 @@
             {
                 var provider = Model.TopProviders[index];
                 var categories = provider.ServiceCategories?
-                    .Split(',', System.StringSplitOptions.RemoveEmptyEntries | System.StringSplitOptions.TrimEntries)
-                    .Take(2)
-                    .ToArray() ?? System.Array.Empty<string>();
+                .Split(',', System.StringSplitOptions.RemoveEmptyEntries | System.StringSplitOptions.TrimEntries)
+                .Take(2)
+                .ToArray() ?? System.Array.Empty<string>();
 
                 var primaryCategory = categories.FirstOrDefault() ?? provider.Title;
                 var icon = "handyman";
@@ -146,5 +167,4 @@
             }
         </div>
     }
-
 </section>

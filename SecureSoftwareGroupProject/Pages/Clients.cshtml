@@ -2,13 +2,12 @@
 @model SecureSoftwareGroupProject.Pages.ClientsModel
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @using System.Globalization
-@using System.Linq
 @{
     ViewData["Title"] = "Clients";
     var totalBalance = Model.Clients.Sum(c => c.Balance);
     var activeCount = Model.Clients.Count(c => string.Equals(c.Status, "Active", StringComparison.OrdinalIgnoreCase));
+    var latest = Model.Clients.OrderByDescending(c => c.RegistrationDate).FirstOrDefault();
 }
-
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
         <h1 class="mb-1">Client Directory</h1>
@@ -28,15 +27,8 @@
                 <select id="status" name="Status" class="form-select">
                     @foreach (var option in Model.StatusOptions)
                     {
-                        var isSelected = string.Equals(Model.Status, option.Value, StringComparison.OrdinalIgnoreCase);
-                        if (isSelected)
-                        {
-                            <option value="@option.Value" selected>@option.Label</option>
-                        }
-                        else
-                        {
-                            <option value="@option.Value">@option.Label</option>
-                        }
+                        var selected = string.Equals(Model.Status, option.Value, StringComparison.OrdinalIgnoreCase);
+                        <option value="@option.Value" selected="@(selected ? "selected" : null)">@option.Label</option>
                     }
                 </select>
             </div>
@@ -78,10 +70,7 @@
             <div class="card-body">
                 <div class="text-muted small">Most recent registration</div>
                 <div class="fs-3 fw-semibold">
-                    @{
-                        var latest = Model.Clients.OrderByDescending(c => c.RegistrationDate).FirstOrDefault();
-                        @:(latest?.RegistrationDate.ToLocalTime().ToString("d MMM yyyy") ?? "N/A")
-                    }
+                    @(latest is null ? "N/A" : latest.RegistrationDate.ToLocalTime().ToString("d MMM yyyy"))
                 </div>
             </div>
         </div>
@@ -111,44 +100,36 @@ else
                     </tr>
                 </thead>
                 <tbody>
-                @foreach (var client in Model.Clients)
-                {
-                    <tr>
-                        <td>
-                            <div class="fw-semibold">@client.Name</div>
-                            @if (!string.IsNullOrWhiteSpace(client.Email) || !string.IsNullOrWhiteSpace(client.Phone))
-                            {
-                                <div class="text-muted small">
-                                    @client.Email
-                                    @if (!string.IsNullOrWhiteSpace(client.Email) && !string.IsNullOrWhiteSpace(client.Phone))
-                                    {
-                                        <span class="mx-1">&middot;</span>
-                                    }
-                                    @client.Phone
-                                </div>
-                            }
-                        </td>
-                        <td>
-                            <span class="badge bg-@(string.Equals(client.Status, "Active", StringComparison.OrdinalIgnoreCase) ? "success" : "secondary")">
-                                @client.Status
-                            </span>
-                        </td>
-                        <td>
-                            @{
-                                var location = string.Join(", ", new[]
+                    @foreach (var c in Model.Clients)
+                    {
+                        var loc = string.Join(", ", new[] { c.City, c.State }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">@c.Name</div>
+                                @if (!string.IsNullOrWhiteSpace(c.Email) || !string.IsNullOrWhiteSpace(c.Phone))
                                 {
-                                    client.City,
-                                    client.State
-                                }.Where(part => !string.IsNullOrWhiteSpace(part)));
-                            }
-                            <div>@(string.IsNullOrWhiteSpace(location) ? "—" : location)</div>
-                        </td>
-                        <td>@client.Balance.ToString("C", CultureInfo.CurrentCulture)</td>
-                        <td>@client.CreditLimit.ToString("C", CultureInfo.CurrentCulture)</td>
-                        <td>@client.LastPaymentDate.ToLocalTime().ToString("d MMM yyyy")</td>
-                        <td>@client.RegistrationDate.ToLocalTime().ToString("d MMM yyyy")</td>
-                    </tr>
-                }
+                                    <div class="text-muted small">
+                                        @c.Email
+                                        @if (!string.IsNullOrWhiteSpace(c.Email) && !string.IsNullOrWhiteSpace(c.Phone))
+                                        {
+                                            <span class="mx-1">&middot;</span>
+                                        }
+                                        @c.Phone
+                                    </div>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge bg-@(string.Equals(c.Status, "Active", StringComparison.OrdinalIgnoreCase) ? "success" : "secondary")">
+                                    @c.Status
+                                </span>
+                            </td>
+                            <td>@(string.IsNullOrWhiteSpace(loc) ? "—" : loc)</td>
+                            <td>@c.Balance.ToString("C", CultureInfo.CurrentCulture)</td>
+                            <td>@c.CreditLimit.ToString("C", CultureInfo.CurrentCulture)</td>
+                            <td>@c.LastPaymentDate.ToLocalTime().ToString("d MMM yyyy")</td>
+                            <td>@c.RegistrationDate.ToLocalTime().ToString("d MMM yyyy")</td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>

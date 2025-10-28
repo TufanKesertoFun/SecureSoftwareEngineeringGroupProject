@@ -10,7 +10,6 @@ namespace SecureSoftwareGroupProject.Pages;
 public class ClientsModel : PageModel
 {
     public sealed record StatusOption(string Value, string Label);
-
     public sealed record ClientSummary(
         int Id,
         string Name,
@@ -25,96 +24,70 @@ public class ClientsModel : PageModel
         decimal CreditLimit);
 
     private readonly AppDbContext _db;
-
     public ClientsModel(AppDbContext db) => _db = db;
 
     public IReadOnlyList<ClientSummary> Clients { get; private set; } = Array.Empty<ClientSummary>();
     public IReadOnlyList<StatusOption> StatusOptions { get; private set; } = Array.Empty<StatusOption>();
 
-    [BindProperty(SupportsGet = true)]
-    public string? Status { get; set; }
+    [BindProperty(SupportsGet = true)] public string? Status { get; set; }
+    [BindProperty(SupportsGet = true)] public string? Search { get; set; }
 
-    [BindProperty(SupportsGet = true)]
-    public string? Search { get; set; }
-
-    public async Task OnGetAsync(CancellationToken cancellationToken)
+    public async Task OnGetAsync(CancellationToken ct)
     {
+        // Build status options
         var rawStatuses = await _db.CustomerBalances
             .AsNoTracking()
             .Select(c => c.Status)
-            .Distinct()
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
 
-        var normalizedStatuses = rawStatuses
+        var normalized = rawStatuses
             .Where(s => !string.IsNullOrWhiteSpace(s))
             .Select(s => s!.Trim())
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(s => s, StringComparer.OrdinalIgnoreCase)
-            .Select(s => new StatusOption(s, s))
             .ToList();
 
         var hasUnspecified = rawStatuses.Any(string.IsNullOrWhiteSpace);
 
-        var options = new List<StatusOption>
+        var opts = new List<StatusOption> { new("__all", "All statuses") };
+        opts.AddRange(normalized.Select(s => new StatusOption(s, s)));
+        if (hasUnspecified) opts.Add(new StatusOption("__unspecified", "Unspecified"));
+        StatusOptions = opts;
+
+        // Choose a safe current status
+        var defaultStatus = normalized.Count switch
         {
-            new("__all", "All statuses")
+            0 => hasUnspecified ? "__unspecified" : "__all",
+            1 => normalized[0],
+            _ => "__all"
         };
-        options.AddRange(normalizedStatuses);
-        if (hasUnspecified)
-        {
-            options.Add(new StatusOption("__unspecified", "Unspecified"));
-        }
-        StatusOptions = options;
-
-        string defaultStatus;
-        if (!normalizedStatuses.Any())
-        {
-            defaultStatus = hasUnspecified ? "__unspecified" : "__all";
-        }
-        else if (normalizedStatuses.Count == 1)
-        {
-            defaultStatus = normalizedStatuses[0].Value;
-        }
-        else
-        {
-            defaultStatus = "__all";
-        }
-
-        var selectedStatus = string.IsNullOrWhiteSpace(Status) ? defaultStatus : Status;
-        if (StatusOptions.All(o => !string.Equals(o.Value, selectedStatus, StringComparison.OrdinalIgnoreCase)))
-        {
+        var selectedStatus = string.IsNullOrWhiteSpace(Status) ? defaultStatus : Status!;
+        if (!StatusOptions.Any(o => string.Equals(o.Value, selectedStatus, StringComparison.OrdinalIgnoreCase)))
             selectedStatus = defaultStatus;
-        }
-
         Status = selectedStatus;
 
-        var query = _db.CustomerBalances.AsNoTracking();
+        // Base query
+        var q = _db.CustomerBalances.AsNoTracking();
 
-        if (string.Equals(selectedStatus, "__all", StringComparison.OrdinalIgnoreCase))
-        {
-            // no filter
-        }
-        else if (string.Equals(selectedStatus, "__unspecified", StringComparison.OrdinalIgnoreCase))
-        {
-            query = query.Where(c => c.Status == null || c.Status == "");
-        }
-        else
-        {
-            query = query.Where(c => c.Status != null &&
-                                     c.Status.Trim() == selectedStatus);
-        }
+        // Status filter
+        if (selectedStatus == "__unspecified")
+            q = q.Where(c => c.Status == null || c.Status == "");
+        else if (selectedStatus != "__all")
+            q = q.Where(c => c.Status != null && c.Status.Trim() == selectedStatus);
 
+        // Search filter
         if (!string.IsNullOrWhiteSpace(Search))
         {
             var term = $"%{Search.Trim()}%";
-            query = query.Where(c =>
+            q = q.Where(c =>
                 EF.Functions.Like(c.CustomerName, term) ||
                 (c.Email != null && EF.Functions.Like(c.Email, term)) ||
                 (c.City != null && EF.Functions.Like(c.City, term)) ||
                 (c.PhoneNumber != null && EF.Functions.Like(c.PhoneNumber, term)));
         }
 
-        Clients = await query
+        // Project
+        Clients = await q
             .OrderBy(c => c.CustomerName)
             .Select(c => new ClientSummary(
                 c.Id,
@@ -128,6 +101,6 @@ public class ClientsModel : PageModel
                 c.RegistrationDate,
                 c.Balance,
                 c.CreditLimit))
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
     }
 }

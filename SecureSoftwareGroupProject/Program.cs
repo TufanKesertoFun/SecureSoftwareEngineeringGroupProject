@@ -1,49 +1,32 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Data.Sqlite;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using SecureSoftwareGroupProject.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// (Optional: make sure JSONs are loaded explicitly if hosting on IIS)
+// Load configuration (appsettings.json + appsettings.{Env}.json)
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
-// 🔎 Read once, guard if missing/empty, and use the variable everywhere
+// ---- Services ----
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(conn))
+    throw new InvalidOperationException("Connection string 'DefaultConnection' is missing or empty.");
+
+builder.Services.AddDbContext<AppDbContext>(opts => opts.UseSqlServer(conn));
+
+builder.Services.AddRazorPages(options =>
 {
-    throw new InvalidOperationException(
-        $"Connection string 'DefaultConnection' is missing/empty. ENV={builder.Environment.EnvironmentName}");
-}
+    // Make these pages viewable without signing in
+    options.Conventions.AllowAnonymousToPage("/Index");
+    options.Conventions.AllowAnonymousToPage("/Login");
+    options.Conventions.AllowAnonymousToPage("/Signup");
+    options.Conventions.AllowAnonymousToPage("/Logout");
 
-builder.Services.AddRazorPages();
-
-var provider = builder.Configuration.GetValue<string>("Database:Provider") ?? "Sqlite";
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    if (string.Equals(provider, "SqlServer", StringComparison.OrdinalIgnoreCase))
-    {
-        options.UseSqlServer(conn);
-    }
-    else
-    {
-        var sqliteBuilder = new SqliteConnectionStringBuilder(conn);
-        if (!Path.IsPathRooted(sqliteBuilder.DataSource))
-        {
-            var fullPath = Path.Combine(builder.Environment.ContentRootPath, sqliteBuilder.DataSource);
-            Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
-            sqliteBuilder.DataSource = fullPath;
-        }
-        else
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(sqliteBuilder.DataSource)!);
-        }
-
-        options.UseSqlite(sqliteBuilder.ConnectionString);
-    }
+    // If later you want most pages private, uncomment this and keep the AllowAnonymous holes above:
+    // options.Conventions.AuthorizeFolder("/");
 });
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -54,21 +37,27 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         o.SlidingExpiration = true;
     });
 
+// Add authorization (no global lock-down so Index/Login stay public)
+builder.Services.AddAuthorization();
+
+// ---- Pipeline ----
 var app = builder.Build();
 
-await using (var scope = app.Services.CreateAsyncScope())
+if (!app.Environment.IsDevelopment())
 {
-    var services = scope.ServiceProvider;
-    var db = services.GetRequiredService<AppDbContext>();
-    var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("DbInitializer");
-    await DbInitializer.InitializeAsync(db, logger);
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
+// IMPORTANT: No manual redirect of "/" — this serves Pages/Index.cshtml by default
 app.MapRazorPages();
-await app.RunAsync();
+
+app.Run();

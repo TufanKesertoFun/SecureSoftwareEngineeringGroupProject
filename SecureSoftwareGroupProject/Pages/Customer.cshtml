@@ -1,12 +1,168 @@
 ﻿@page
 @model SecureSoftwareGroupProject.Pages.CustomerModel
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using System.Globalization
 @{
-    ViewData["Title"] = "Customer";
+    ViewData["Title"] = "Customer Balances";
+    var activeCount = Model.Rows.Count(r => r.Status?.Equals("Active", StringComparison.OrdinalIgnoreCase) == true);
+    var totalBalance = Model.Rows.Sum(r => r.Balance);
+    var totalCredit = Model.Rows.Sum(r => r.CreditLimit);
+    var util = totalCredit > 0 ? (totalBalance / totalCredit) : 0m;
+    var latest = Model.Rows.OrderByDescending(r => r.RegistrationDate).FirstOrDefault();
 }
-<h1 class="mb-3">Customer</h1>
 
-<p>Customer Information will Go here Only admins can access this</p>
-<p>Souvik Is building this one</p>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="mb-1">Customer Balances</h1>
+        <p class="text-muted mb-0">Accounts, status & risk at a glance.</p>
+    </div>
+    <div class="text-end">
+        <div class="fs-4 fw-semibold">@Model.Rows.Count</div>
+        <div class="text-muted small">records</div>
+    </div>
+</div>
 
-<a class="btn btn-primary mt-3" asp-page="/CustomerBalance">Next: Customer Balances</a>
+<!-- Filters -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select class="form-select" name="Status">
+                    <option value="__all" selected="@(Model.Status == "__all" ? "selected" : null)">All</option>
+                    <option value="Active" selected="@(Model.Status == "Active" ? "selected" : null)">Active</option>
+                    <option value="Inactive" selected="@(Model.Status == "Inactive" ? "selected" : null)">Inactive</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Currency</label>
+                <select class="form-select" name="Currency">
+                    <option value="__all" selected="@(Model.Currency == "__all" ? "selected" : null)">All</option>
+                    @foreach (var cur in Model.AllCurrencies)
+                    {
+                        <option value="@cur" selected="@(Model.Currency == cur ? "selected" : null)">@cur</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Balance ≥</label>
+                <input class="form-control" name="MinBalance" value="@(Model.MinBalance?.ToString(CultureInfo.InvariantCulture) ?? "")" placeholder="e.g. 1000" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Search</label>
+                <input class="form-control" name="q" value="@Model.Query" placeholder="Name, email, city, phone…" />
+            </div>
+
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Apply</button>
+            </div>
+            <div class="col-md-3">
+                <a asp-page="./CustomerBalance" class="btn btn-outline-secondary w-100">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Active customers</div>
+                <div class="fs-3 fw-semibold">@activeCount</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Total balance</div>
+                <div class="fs-3 fw-semibold">@totalBalance.ToString("C", CultureInfo.CurrentCulture)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Credit utilization</div>
+                <div class="fs-3 fw-semibold">@util.ToString("P0", CultureInfo.CurrentCulture)</div>
+                <div class="text-muted small">Balance / Credit limit</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Most recent registration</div>
+                <div class="fs-3 fw-semibold">@(latest is null ? "N/A" : latest.RegistrationDate.ToLocalTime().ToString("d MMM yyyy"))</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Rows.Any())
+{
+    <div class="alert alert-info shadow-sm">No results match the selected filters.</div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Customer</th>
+                        <th>Account</th>
+                        <th>Status</th>
+                        <th>Location</th>
+                        <th class="text-end">Balance</th>
+                        <th class="text-end">Credit Limit</th>
+                        <th class="text-end">Last Payment</th>
+                        <th>Currency</th>
+                        <th>Registered</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Rows)
+                    {
+                        var statusClass =
+                        r.Status?.Equals("Active", StringComparison.OrdinalIgnoreCase) == true ? "success" :
+                        r.Status?.Equals("Inactive", StringComparison.OrdinalIgnoreCase) == true ? "secondary" : "light";
+
+                        var loc = string.Join(", ", new[] { r.City, r.State }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">@r.CustomerName</div>
+                                <div class="text-muted small">
+                                    @if (!string.IsNullOrWhiteSpace(r.Email))
+                                    {
+                                        <a href="mailto:@r.Email">@r.Email</a>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(r.Email) && !string.IsNullOrWhiteSpace(r.PhoneNumber))
+                                    {
+                                        <span class="mx-1">·</span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(r.PhoneNumber))
+                                    {
+                                        <a href="tel:@r.PhoneNumber">@r.PhoneNumber</a>
+                                    }
+                                </div>
+                            </td>
+                            <td><code>@r.AccountNumber</code></td>
+                            <td><span class="badge bg-@statusClass">@r.Status</span></td>
+                            <td>@(string.IsNullOrWhiteSpace(loc) ? "—" : loc)</td>
+                            <td class="text-end">@r.Balance.ToString("C", CultureInfo.CurrentCulture)</td>
+                            <td class="text-end">@r.CreditLimit.ToString("C", CultureInfo.CurrentCulture)</td>
+                            <td class="text-end">@r.LastPaymentDate.ToLocalTime().ToString("d MMM yyyy")</td>
+                            <td>@r.Currency</td>
+                            <td>@r.RegistrationDate.ToLocalTime().ToString("d MMM yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
