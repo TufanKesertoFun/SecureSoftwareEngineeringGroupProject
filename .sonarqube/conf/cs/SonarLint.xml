@@ -2,10 +2,6 @@
 <AnalysisInput>
   <Settings>
     <Setting>
-      <Key>sonar.cs.opencover.reportsPaths</Key>
-      <Value>**/coverage.opencover.xml</Value>
-    </Setting>
-    <Setting>
       <Key>sonar.cs.ignoreHeaderComments</Key>
       <Value>true</Value>
     </Setting>
