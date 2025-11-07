@@ -208,3 +208,29 @@ Open your web browser and navigate to [**http://localhost:5179**](http://localho
 - **Input Validation:** Server-side validation is enforced on all user inputs to prevent malicious data.
 
 - **HTTPS Enforcement:** The application is configured to use HTTPS in production environments.
+
+## If after everything the app still not running Do this and see this screen:
+
+# Drop and recreate everything cleanly
+sqlcmd -S localhost -U sa -P Replace_StrongPass1! -C -Q "DROP DATABASE IF EXISTS SecureSoftwareDatabase;"
+sqlcmd -S localhost -U sa -P Replace_StrongPass1! -C -Q "DROP LOGIN IF EXISTS appuser;"
+
+# Create the login FIRST
+sqlcmd -S localhost -U sa -P Replace_StrongPass1! -C -Q "CREATE LOGIN appuser WITH PASSWORD = 'Replace_StrongPass1!';"
+
+# Create the database
+sqlcmd -S localhost -U sa -P Replace_StrongPass1! -C -Q "CREATE DATABASE SecureSoftwareDatabase;"
+
+# Create the user and grant permissions
+sqlcmd -S localhost -U sa -P Replace_StrongPass1! -C -d SecureSoftwareDatabase -Q "CREATE USER appuser FOR LOGIN appuser;"
+sqlcmd -S localhost -U sa -P Replace_StrongPass1! -C -d SecureSoftwareDatabase -Q "ALTER ROLE db_owner ADD MEMBER appuser;"
+
+# Now run the migrations (this will create the TABLES, not the database)
+cd SecureSoftwareGroupProject
+dotnet ef database update
+
+# Run the app
+dotnet run
+
+## Then open
+http://localhost:5179
