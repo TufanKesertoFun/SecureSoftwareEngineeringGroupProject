@@ -1,0 +1,29 @@
+=== FUZZ LOG ===
+
+
+== SharpFuzz starting (friendly banner) ==
+Using corpus folder: .\FuzzingApplicationforSecurity\corpus
+Loaded 2 input files from .\corpus
+
+[FUZZ] username='admin' password_len=5
+[FUZZ] username='testuser' password_len=12
+[FUZZ] username='user' password_len=0
+[FUZZ] username='verylongusernameeeeeeeeeeeee' password_len=20
+[FUZZ] username='A_very_weird_user\xFF\x00' password_len=8
+[FUZZ] username='alice' password_len=8
+[FUZZ] username='bob' password_len=16
+[FUZZ] username='; DROP TABLE users;' password_len=4
+#0       INITED cov: 10 ft: 12 corp: 2/36b exec/s: 0 rss: 28Mb
+#5       NEW    cov: 18 ft: 22 corp: 4/108b exec/s: 220 rss: 29Mb
+#10      NEW    cov: 24 ft: 30 corp: 6/256b exec/s: 310 rss: 30Mb
+#15      NEW    cov: 27 ft: 34 corp: 7/312b exec/s: 295 rss: 30Mb
+#19      DONE   cov: 28 ft: 36 corp: 8/336b exec/s: 285 rss: 30Mb
+
+stat::number_of_executed_units: 20
+stat::new_units_added: 6
+stat::edge_coverage: 28
+stat::execs_per_sec: 285
+stat::max_rss_mb: 30
+
+Saved corpus to: .\FuzzingApplicationforSecurity\findings\corpus
+=== END OF EXAMPLE LOG ===

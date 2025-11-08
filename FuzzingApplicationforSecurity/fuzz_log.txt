@@ -1,0 +1,8 @@
+﻿dotnet : == SharpFuzz starting (friendly banner) ==
+At line:1 char:1
++ dotnet run --project .\FuzzingApplicationforSecurity\ -c Release -- - ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (== SharpFuzz st...ndly banner) ==:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Using corpus folder: .\corpus
