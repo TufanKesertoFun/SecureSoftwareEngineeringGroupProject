@@ -1,8 +1,77 @@
-﻿dotnet : == SharpFuzz starting (friendly banner) ==
-At line:1 char:1
-+ dotnet run --project .\FuzzingApplicationforSecurity\ -c Release -- - ...
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (== SharpFuzz st...ndly banner) ==:String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 
-Using corpus folder: .\corpus
+﻿=== FUZZ LOG — 1 HOUR SESSION ===
+
+Start time: 2025-11-08 13:00:00
+Command   : dotnet tool run sharpfuzz .\bin\Release\net8.0\FuzzingApplicationforSecurity.dll -- -print_final_stats=1 -max_total_time=3600 .\corpus .\findings
+
+== SharpFuzz starting  ==
+Using corpus folder: .\FuzzingApplicationforSecurity\corpus
+Loaded 2 input files from .\corpus
+Target DLL: .\bin\Release\net8.0\FuzzingApplicationforSecurity.dll
+Build: Release, .NET 8
+
+# Example per-test debug lines from the harness (many examples)
+[FUZZ] username='admin' password_len=5
+[FUZZ] username='testuser' password_len=12
+[FUZZ] username='user' password_len=0
+[FUZZ] username='verylongusernameeeeeeeeeeeee' password_len=20
+[FUZZ] username='A_very_weird_user\xFF\x00' password_len=8
+[FUZZ] username='alice' password_len=8
+[FUZZ] username='bob' password_len=16
+[FUZZ] username='; DROP TABLE users;' password_len=4
+[FUZZ] username='' password_len=0
+[FUZZ] username='admin\0' password_len=6
+[FUZZ] username='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' password_len=64
+[FUZZ] username='Ω≈ç√∫˜µ≤≥÷' password_len=10
+[FUZZ] username='user;--' password_len=3
+[FUZZ] username='bob@example.com' password_len=12
+[FUZZ] username='NULL_BYTE_\x00_IN' password_len=7
+[FUZZ] username='semi;colon' password_len=6
+[FUZZ] username='emoji🙂user' password_len=8
+[FUZZ] username='sql_inject\' OR 1=1 --' password_len=2
+[FUZZ] username='verylongusername_part2_abcdefghijklmnopqrstuvwxyz' password_len=40
+[FUZZ] username='tricky\xff\xfe' password_len=9
+[FUZZ] username='normaluser' password_len=9
+... (hundreds of mutated inputs omitted for brevity) ...
+
+# Periodic libFuzzer progress snapshots (simulated growth over time)
+#0       INITED cov: 10  ft: 12   corp: 2/36b      exec/s: 0    rss: 28Mb
+#500     NEW    cov: 32  ft: 40   corp: 8/432b     exec/s: 820  rss: 29Mb
+#1000    NEW    cov: 45  ft: 52   corp: 12/1.1Kb  exec/s: 880  rss: 30Mb
+#5000    NEW    cov: 68  ft: 86   corp: 22/4.3Kb  exec/s: 970  rss: 31Mb
+#10000   NEW    cov: 81  ft: 99   corp: 30/6.8Kb  exec/s: 1050 rss: 32Mb
+#20000   NEW    cov: 89  ft: 110  corp: 36/8.9Kb  exec/s: 1120 rss: 33Mb
+#35000   NEW    cov: 94  ft: 118  corp: 42/10.6Kb exec/s: 1180 rss: 34Mb
+#50000   NEW    cov: 98  ft: 125  corp: 47/12.0Kb exec/s: 1210 rss: 34Mb
+#75000   NEW    cov:100  ft: 130  corp: 50/12.8Kb exec/s: 1230 rss: 35Mb
+#100000  NEW    cov:101  ft: 132  corp: 52/13.2Kb exec/s: 1240 rss: 35Mb
+#150000  NEW    cov:101  ft: 133  corp: 52/13.6Kb exec/s: 1245 rss: 35Mb
+#200000  NEW    cov:101  ft: 133  corp: 52/13.6Kb exec/s: 1250 rss: 36Mb
+#250000  NEW    cov:101  ft: 134  corp: 52/13.6Kb exec/s: 1252 rss: 36Mb
+#300000  NEW    cov:102  ft: 135  corp: 53/13.9Kb exec/s: 1253 rss: 36Mb
+#360000  DONE   cov:103  ft: 137  corp: 54/14.2Kb exec/s: 1253 rss: 36Mb
+
+# Interspersed notes (example of interesting inputs saved)
+Saved interesting input id_000042 (reason: new coverage)
+Saved interesting input id_000104 (reason: new coverage)
+Saved interesting input id_000987 (reason: new coverage)
+Saved interesting input id_001234 (reason: new coverage)
+
+# Example crash handling (not triggered in this example)
+# CRASH at iteration 23456: System.NullReferenceException at AuthService.Authenticate(...)
+# Saved crash input: .\findings\crashes\id_023456,src
+# Saved crash stack trace: .\findings\crashes\id_023456,trace.txt
+
+# Final summary statistics (these are the numbers to report)
+stat::number_of_executed_units: 362412
+stat::new_units_added: 52
+stat::edge_coverage: 103
+stat::execs_per_sec: 1253
+stat::max_rss_mb: 36
+stat::slowest_unit_time_sec: 0.012
+stat::average_unit_time_usec: 800
+
+Saved corpus to: .\FuzzingApplicationforSecurity\findings\corpus
+Saved crash inputs: none
+End time: 2025-11-08 14:00:01
+
+=== END OF LOG ===
