@@ -26,7 +26,7 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AllowAnonymousToPage("/Logout");
 
     // If later you want most pages private, uncomment this and keep the AllowAnonymous holes above:
-    // options.Conventions.AuthorizeFolder("/");
+
 });
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

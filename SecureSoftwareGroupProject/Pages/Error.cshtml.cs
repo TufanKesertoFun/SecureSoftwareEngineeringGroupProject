@@ -15,7 +15,7 @@ namespace SecureSoftwareGroupProject.Pages
 
         public void OnGet()
         {
-            // RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+            //This code function has purposfully been left blank.
         }
     }
 
